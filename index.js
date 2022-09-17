@@ -4,16 +4,19 @@ const cheerio = require('cheerio');
 const app = require('express')();
 const PORT = 3000;
 
+const dolarPeso = 80;
+const fee = 0.87; 
+
 let fullList = []; 
 
 let tradingCardPricefl;
 
 class fullDesc{
-    constructor(name, cardPrice, cardAmmount, gamePrice){
+    constructor(name, gamePrice, cardAmmount, profit){
         this.name = name;
-        this.cardPrice = cardPrice;
-        this.cardAmmount = cardAmmount;
         this.gamePrice = gamePrice;
+        this.cardAmmount = cardAmmount;
+        this.profit = profit;
     }
 }
 
@@ -47,13 +50,16 @@ function getInfo(){
                         let gameName = $('.market_listing_game_name').first().text().trim();
                         let gameNameTrimmed = gameName.split(' ').slice(0, -2).join(' '); // cleans the game name (removes last two words)
 
-                        if (tradingCardPrice){ // validates undefined
-                            console.log(gameNameTrimmed + " ✅");
-                            console.log("Card price: " + tradingCardPricefl);
-                            console.log("Cards in set: " + tradingCardAmmount);
-                            console.log("Game price: " + price);
+                        let possibleCards = Math.trunc(tradingCardAmmount/2);
+                        let calculateProfit = (possibleCards * (tradingCardPricefl*dolarPeso)*fee) - price; // calculates profit
 
-                            let makeNode = new fullDesc(gameNameTrimmed, tradingCardPricefl, tradingCardAmmount, price); // sends the data to an structure
+                        if (tradingCardPrice && (calculateProfit>0)){ // validates undefined and checks if profitable
+                            console.log(gameNameTrimmed + " ✅");
+                            console.log("Game price: " + price);
+                            console.log("Possible trading cards dropped: " + possibleCards);
+                            console.log("Possible profit: $" + calculateProfit);
+
+                            let makeNode = new fullDesc(gameNameTrimmed, price, possibleCards, calculateProfit); // sends the data to an structure
                             fullList.push(makeNode);
                         }
                     }
