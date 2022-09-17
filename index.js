@@ -4,11 +4,18 @@ const cheerio = require('cheerio');
 const app = require('express')();
 const PORT = 3000;
 
-let gameList = [];
-let gamePrice = [];
-let cardsPrice = [];
+let fullList = []; 
 
 let tradingCardPricefl;
+
+class fullDesc{
+    constructor(name, cardPrice, cardAmmount, gamePrice){
+        this.name = name;
+        this.cardPrice = cardPrice;
+        this.cardAmmount = cardAmmount;
+        this.gamePrice = gamePrice;
+    }
+}
 
 function getInfo(){
     request('https://store.steampowered.com/search/?sort_by=Price_ASC&maxprice=840&category1=998&category2=29', (error, response, html)=> { // gets price and game name
@@ -46,9 +53,8 @@ function getInfo(){
                             console.log("Cards in set: " + tradingCardAmmount);
                             console.log("Game price: " + price);
 
-                            cardsPrice.push(tradingCardPricefl);
-                            gameList.push(gameNameTrimmed);
-                            gamePrice.push(price);
+                            let makeNode = new fullDesc(gameNameTrimmed, tradingCardPricefl, tradingCardAmmount, price); // sends the data to an structure
+                            fullList.push(makeNode);
                         }
                     }
                 })
@@ -70,9 +76,7 @@ async function getList(){
     getInfo();
     app.get('/game-list', (req, res) => {
         res.status(200).send({
-            gameList: gameList,
-            cardsPrice: cardsPrice,
-            gamePrice: gamePrice
+            fullList: fullList
         })
     });    
 }
