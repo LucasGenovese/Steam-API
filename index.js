@@ -4,7 +4,6 @@ const cheerio = require('cheerio');
 const app = require('express')();
 const PORT = 3000;
 
-const dolarPeso = 80;
 const fee = 0.87; 
 
 let fullList = []; 
@@ -33,25 +32,33 @@ function getInfo(){
                 price = price.split('$')[2];
                 price = parseFloat(price.replace(',','.'));
                 
+                var options = {
+                    'method': 'GET',
+                    'url': 'https://steamcommunity.com/market/search?q=&category_753_Game%5B%5D=tag_app_' + gameId + '&category_753_cardborder%5B%5D=tag_cardborder_0&category_753_item_class%5B%5D=tag_item_class_2&appid=753#p1_price_asc',
+                    'headers': {
+                        'Cookie': 'sessionid=XXXXXXX;  steamLoginSecure=XXXXXXXX'
+                    }
+                };
+
                 // filters if games has trading cards
-                request('https://steamcommunity.com/market/search?q=&category_753_Game%5B%5D=tag_app_' + gameId + '&category_753_cardborder%5B%5D=tag_cardborder_0&category_753_item_class%5B%5D=tag_item_class_2&appid=753#p1_price_asc', (error, response, html)=> {
+                request(options, (error, response, html)=> {
                     if (!error && response.statusCode == 200){
                         const $ = cheerio.load(html);
                         let tradingCardPrice = $('.normal_price').text().trim();
-                        let tradingCardPriceTrimmed = tradingCardPrice.trim().split(/\s+/)[2]; //trims the trading card price
+                        let tradingCardPriceTrimmed = tradingCardPrice.trim().split(' ')[3]; //trims the trading card price
 
                         let tradingCardAmmount = $('#searchResults_total').text() //gets ammount of trading cards
                         tradingCardAmmount = parseFloat(tradingCardAmmount);
 
                         if (tradingCardPriceTrimmed){ // validates that the value is not undefined
-                            tradingCardPricefl = parseFloat(tradingCardPriceTrimmed.replace('$',''));    
+                            tradingCardPricefl = parseFloat(tradingCardPriceTrimmed.replace(',','.'));
                         }
                         
                         let gameName = $('.market_listing_game_name').first().text().trim();
                         let gameNameTrimmed = gameName.split(' ').slice(0, -2).join(' '); // cleans the game name (removes last two words)
 
-                        let possibleCards = Math.trunc(tradingCardAmmount/2);
-                        let calculateProfit = (possibleCards * (tradingCardPricefl*dolarPeso)*fee) - price; // calculates profit
+                        let possibleCards = Math.round(tradingCardAmmount/2);
+                        let calculateProfit = (possibleCards * (tradingCardPricefl)*fee) - price; // calculates profit
 
                         if (tradingCardPrice && (calculateProfit>0)){ // validates undefined and checks if profitable
                             console.log(gameNameTrimmed + " ✅");
