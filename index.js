@@ -4,7 +4,13 @@ const cheerio = require('cheerio');
 const app = require('express')();
 const PORT = 3000;
 
-const fee = 0.87; 
+const fee = 0.87;
+
+// replace with your own cookies
+const webTradeEligibility = 'XXXXXX';
+const browserid = 'XXXXXXX';
+const steamLoginSecure = 'XXXXXX';
+const sessionid = 'XXXXXXX';
 
 let fullList = []; 
 
@@ -28,7 +34,7 @@ function getInfo(){
             $('.col.search_capsule').each(function(i,element) { 
                 let gameId = $(this).find('img').attr('src').split("/")[5].trim(); // grabs game ID from img src and then trims the ID
 
-                let price = $(this).nextUntil('.col.search_price.discounted.responsive_secondrow').text().trim(); // gets price of games
+                let price = $(this).nextUntil('.col.search_price.discounted.responsive_secondrow').text().trim(); // gets game price
                 price = price.split('$')[2];
                 price = parseFloat(price.replace(',','.'));
                 
@@ -36,7 +42,7 @@ function getInfo(){
                     'method': 'GET',
                     'url': 'https://steamcommunity.com/market/search?q=&category_753_Game%5B%5D=tag_app_' + gameId + '&category_753_cardborder%5B%5D=tag_cardborder_0&category_753_item_class%5B%5D=tag_item_class_2&appid=753#p1_price_asc',
                     'headers': {
-                        'Cookie': 'sessionid=XXXXXXX;  steamLoginSecure=XXXXXXXX'
+                        'Cookie': 'webTradeEligibility='+ webTradeEligibility +' ; browserid='+ browserid +' ; steamLoginSecure= ' + steamLoginSecure +' ; sessionid=' + sessionid
                     }
                 };
 
