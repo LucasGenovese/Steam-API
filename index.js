@@ -6,10 +6,10 @@ const PORT = 3000;
 const app = express();
 
 // replace with own steam marketplace cookies
-const webTradeEligibility = 'XXXXXXX';
-const browserid = 'XXXXXXX';
-const steamLoginSecure = 'XXXXXXX';
-const sessionid = 'XXXXXXX';
+const webTradeEligibility = 'XXXXXXXXXX';
+const browserid = 'XXXXXXXXXX';
+const steamLoginSecure = 'XXXXXXXXX';
+const sessionid = 'XXXXXXXXXXX';
 
 let idPriceList = [];
 let fullList = [];
@@ -99,11 +99,6 @@ async function getInfo(){
     });
 }
 
-app.listen(
-    PORT,
-    () => console.log(`it's alive on http:localhost:${PORT}`)
-)
-
 async function main(){
     // generates idPriceList 
     await getInfo();
@@ -112,23 +107,27 @@ async function main(){
     let priceList =  idPriceList.map(({price}) => price);
     let idList = idPriceList.map(({gameId}) => gameId); 
 
-    for (let i=0; i<idPriceList.length; i++){
+    for (let i=0; i<30; i++){ // change to i<idPriceList.length to show full list of games
 
         // every 20 requests waits 5 seconds so it wont block me for attempting too much
         if (i%20 === 0 && i!=0){
-            await sleep(5000);
+            await sleep(1000);
         }
         
         // retrieves and makes list of profitable games
         await filterTradingCard(priceList[i], idList[i]);
     }
 
-    // finally it pushes the list made by filterTradingCard
-    app.get('/game-list', (req, res) => {
-        res.status(200).send({
-            fullList: fullList
-        })
-    }); 
+    console.log("Done!");
+    return fullList;
 }
 
-main();
+app.listen(
+    PORT,
+    () => console.log(`it's alive on http:localhost:${PORT}`)
+)
+
+app.get('/game-list', async (req, res) => {
+    var finalList = await main();
+    res.send(finalList);
+});
