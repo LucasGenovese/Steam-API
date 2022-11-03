@@ -5,14 +5,11 @@ import express from "express";
 const PORT = 3000;
 const app = express();
 
-// replace with own steam marketplace cookies
-const webTradeEligibility = 'XXXXXXXXXX';
-const browserid = 'XXXXXXXXXX';
-const steamLoginSecure = 'XXXXXXXXX';
-const sessionid = 'XXXXXXXXXXX';
+let webTradeEligibility, browserid, steamLoginSecure, sessionid;
 
 let idPriceList = [];
 let fullList = [];
+
 
 class idPrice{
     constructor(price, gameId){
@@ -97,6 +94,7 @@ async function getInfo(){
         let idPriceNode = new idPrice(price, gameId);
         idPriceList.push(idPriceNode);
     });
+
 }
 
 async function main(){
@@ -124,10 +122,15 @@ async function main(){
 
 app.listen(
     PORT,
-    () => console.log(`it's alive on http:localhost:${PORT}`)
+    () => console.log(`it's alive on http://localhost:${PORT}`)
 )
 
 app.get('/game-list', async (req, res) => {
+    webTradeEligibility = req.query.webTradeEligibility;
+    browserid = req.query.browserid;
+    steamLoginSecure = req.query.steamLoginSecure;
+    sessionid = req.query.sessionid;
+
     var finalList = await main();
     res.send(finalList);
 });
