@@ -5,7 +5,7 @@ import express from "express";
 const PORT = 3000;
 const app = express();
 
-let webTradeEligibility, browserid, steamLoginSecure, sessionid;
+let webTradeEligibility, browserid, steamLoginSecure, sessionid, steamparental;
 
 let idPriceList = [];
 let fullList = [];
@@ -56,8 +56,8 @@ async function filterTradingCard(price, gameId){
 
     const response = await fetch('https://steamcommunity.com/market/search/render/?query=&start=0&count=10&search_descriptions=0&sort_column=price&sort_dir=asc&appid=753&category_753_Game%5B%5D=tag_app_'+gameId+'&category_753_cardborder%5B%5D=tag_cardborder_0&category_753_item_class%5B%5D=tag_item_class_2', {
         mode: 'cors',
-        headers: {
-            'Cookie': 'webTradeEligibility='+ webTradeEligibility +' ; browserid='+ browserid +' ; steamLoginSecure= ' + steamLoginSecure +' ; sessionid=' + sessionid
+        'headers': {
+            'Cookie': 'sessionid='+ sessionid +'; steamLoginSecure='+ steamLoginSecure +'; browserid= '+ browserid +'; steamparental='+ steamparental +'; webTradeEligibility= '+ webTradeEligibility +'; browserid=' + browserid
         }
     });
     const data = await response.json();
@@ -151,11 +151,15 @@ app.get('/game-list', async (req, res) => {
     browserid = req.query.browserid;
     steamLoginSecure = req.query.steamLoginSecure;
     sessionid = req.query.sessionid;
+    steamparental = req.query.steamparental;
 
-    console.log("Retrieving profitable games");
-    var finalList = await main();
-    console.log("Successfully retrieved profitable games");
-
+    try {
+        var finalList = await main();
+        console.log("Successfully retrieved profitable games");
+    } catch (error) {
+        console.log(error);
+    }
+    
     res.send(finalList);
 });
 
@@ -163,9 +167,12 @@ app.get('/game-list', async (req, res) => {
 app.get('/user-game-list', async (req, res) => {
     steamLoginSecure = req.query.steamLoginSecure;
 
-    console.log("Retrieving user game list");
-    var gameIDList = await getUserList(steamLoginSecure.split('|')[0]);
-    console.log("Successfully retrieved user game list!");
+    try {
+        var gameIDList = await getUserList(steamLoginSecure.split('|')[0]);
+        console.log("Successfully retrieved user game list!");
+    } catch (error){
+        console.log(error);
+    }
 
     res.send(gameIDList);
 });
