@@ -19,13 +19,14 @@ class idPrice{
 }
 
 class fullDesc{
-    constructor(name, gamePrice, cardAmmount, profit, gameUrl, gameImg){
+    constructor(name, gamePrice, cardAmmount, profit, gameUrl, gameImg, gameID){
         this.name = name;
         this.gamePrice = gamePrice;
         this.cardAmmount = cardAmmount;
         this.profit = profit;
         this.gameUrl = gameUrl;
         this.gameImg = gameImg;
+        this.gameID = gameID;
     }
 }
 
@@ -90,7 +91,8 @@ async function filterTradingCard(price, gameId){
             possibleCards, 
             calculateProfit, 
             'https://store.steampowered.com/app/' + gameId, 
-            'https://cdn.cloudflare.steamstatic.com/steam/apps/' + gameId + '/capsule_sm_120.jpg'
+            'https://cdn.cloudflare.steamstatic.com/steam/apps/' + gameId + '/capsule_sm_120.jpg',
+            gameId
         ); // sends the data to an structure
         fullList.push(makeNode);
     }
