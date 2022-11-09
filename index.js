@@ -9,7 +9,7 @@ let webTradeEligibility, browserid, steamLoginSecure, sessionid;
 
 let idPriceList = [];
 let fullList = [];
-
+let userGameID = [];
 
 class idPrice{
     constructor(price, gameId){
@@ -19,16 +19,36 @@ class idPrice{
 }
 
 class fullDesc{
-    constructor(name, gamePrice, cardAmmount, profit){
+    constructor(name, gamePrice, cardAmmount, profit, gameUrl, gameImg){
         this.name = name;
         this.gamePrice = gamePrice;
         this.cardAmmount = cardAmmount;
         this.profit = profit;
+        this.gameUrl = gameUrl;
+        this.gameImg = gameImg;
     }
 }
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// gets user game list
+async function getUserList(profileId){
+    const res = await fetch('https://steamcommunity.com/profiles/' + profileId + '/games?tab=all&xml=1');
+    const dat = await res.text();
+    
+    let datSplit = dat.split('<game>');
+    
+    for (let i=0; i<datSplit.length; i++){
+        var filteredID = datSplit[i].substring(
+            datSplit[i].indexOf("<appID>") + "<appID>".length,
+            datSplit[i].indexOf("</appID>")
+        );
+        userGameID.push(filteredID);
+    }
+    userGameID.splice(0,1);
+    return userGameID;
 }
 
 async function filterTradingCard(price, gameId){
@@ -65,12 +85,13 @@ async function filterTradingCard(price, gameId){
 
     // shows only profitable games
     if (calculateProfit > 0){
-        console.log(gameNameTrimmed + " ✅");
-        console.log("Game price: " + price);
-        console.log("Possible trading cards dropped: " + possibleCards);
-        console.log("Possible profit: $" + calculateProfit);
-
-        let makeNode = new fullDesc(gameNameTrimmed, price, possibleCards, calculateProfit); // sends the data to an structure
+        let makeNode = new fullDesc(gameNameTrimmed, 
+            price, 
+            possibleCards, 
+            calculateProfit, 
+            'https://store.steampowered.com/app/' + gameId, 
+            'https://cdn.cloudflare.steamstatic.com/steam/apps/' + gameId + '/capsule_sm_120.jpg'
+        ); // sends the data to an structure
         fullList.push(makeNode);
     }
 }
@@ -105,7 +126,7 @@ async function main(){
     let priceList =  idPriceList.map(({price}) => price);
     let idList = idPriceList.map(({gameId}) => gameId); 
 
-    for (let i=0; i<30; i++){ // change to i<idPriceList.length to show full list of games
+    for (let i=0; i<30; i++){ // change to i<idPriceList.length to show complete list of games
 
         // every 20 requests waits 5 seconds so it wont block me for attempting too much
         if (i%20 === 0 && i!=0){
@@ -116,7 +137,6 @@ async function main(){
         await filterTradingCard(priceList[i], idList[i]);
     }
 
-    console.log("Done!");
     return fullList;
 }
 
@@ -125,12 +145,27 @@ app.listen(
     () => console.log(`it's alive on http://localhost:${PORT}`)
 )
 
+// Gets profitable game list
 app.get('/game-list', async (req, res) => {
     webTradeEligibility = req.query.webTradeEligibility;
     browserid = req.query.browserid;
     steamLoginSecure = req.query.steamLoginSecure;
     sessionid = req.query.sessionid;
 
+    console.log("Retrieving profitable games");
     var finalList = await main();
+    console.log("Successfully retrieved profitable games");
+
     res.send(finalList);
+});
+
+// Gets game list owned by the user
+app.get('/user-game-list', async (req, res) => {
+    steamLoginSecure = req.query.steamLoginSecure;
+
+    console.log("Retrieving user game list");
+    var gameIDList = await getUserList(steamLoginSecure.split('|')[0]);
+    console.log("Successfully retrieved user game list!");
+
+    res.send(gameIDList);
 });
