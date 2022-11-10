@@ -1,9 +1,11 @@
 import fetch from "node-fetch";
 import * as cheerio from "cheerio";
 import express from "express";
+import cors from "cors";
 
-const PORT = 3000;
+const PORT = 3001;
 const app = express();
+app.use(cors())
 
 let webTradeEligibility, browserid, steamLoginSecure, sessionid, steamparental;
 
@@ -89,7 +91,7 @@ async function filterTradingCard(price, gameId){
         let makeNode = new fullDesc(gameNameTrimmed, 
             price, 
             possibleCards, 
-            calculateProfit, 
+            Math.trunc(calculateProfit), 
             'https://store.steampowered.com/app/' + gameId, 
             'https://cdn.cloudflare.steamstatic.com/steam/apps/' + gameId + '/capsule_sm_120.jpg',
             gameId
