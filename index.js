@@ -91,7 +91,7 @@ async function filterTradingCard(price, gameId){
         let makeNode = new fullDesc(gameNameTrimmed, 
             price, 
             possibleCards, 
-            Math.trunc(calculateProfit), 
+            calculateProfit.toFixed(2), 
             'https://store.steampowered.com/app/' + gameId, 
             'https://cdn.cloudflare.steamstatic.com/steam/apps/' + gameId + '/capsule_sm_120.jpg',
             gameId
@@ -158,6 +158,7 @@ app.get('/game-list', async (req, res) => {
     steamparental = req.query.steamparental;
 
     try {
+        console.log("Retrieving game list...");
         var finalList = await main();
         console.log("Successfully retrieved profitable games");
     } catch (error) {
@@ -172,6 +173,7 @@ app.get('/user-game-list', async (req, res) => {
     steamLoginSecure = req.query.steamLoginSecure;
 
     try {
+        console.log("Retrieving user game list...");
         var gameIDList = await getUserList(steamLoginSecure.split('|')[0]);
         console.log("Successfully retrieved user game list!");
     } catch (error){
