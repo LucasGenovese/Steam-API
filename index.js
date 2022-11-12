@@ -157,6 +157,9 @@ app.get('/game-list', async (req, res) => {
     sessionid = req.query.sessionid;
     steamparental = req.query.steamparental;
 
+    // cleans list before sending new one
+    fullList = [];
+
     try {
         console.log("Retrieving game list...");
         var finalList = await main();
@@ -171,6 +174,8 @@ app.get('/game-list', async (req, res) => {
 // Gets game list owned by the user
 app.get('/user-game-list', async (req, res) => {
     steamLoginSecure = req.query.steamLoginSecure;
+
+    userGameID = [];
 
     try {
         console.log("Retrieving user game list...");
