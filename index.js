@@ -164,11 +164,12 @@ app.get('/game-list', async (req, res) => {
         console.log("Retrieving game list...");
         var finalList = await main();
         console.log("Successfully retrieved profitable games");
+        res.send(finalList);
     } catch (error) {
-        console.log(error);
+        console.log("Not found");
+        res.status(404).send("Not found.");
     }
-    
-    res.send(finalList);
+   
 });
 
 // Gets game list owned by the user
@@ -181,9 +182,10 @@ app.get('/user-game-list', async (req, res) => {
         console.log("Retrieving user game list...");
         var gameIDList = await getUserList(steamLoginSecure.split('|')[0]);
         console.log("Successfully retrieved user game list!");
+        res.send(gameIDList);
     } catch (error){
-        console.log(error);
+        console.log("Not found.");
+        res.status(404).send("Not found.");
     }
-
-    res.send(gameIDList);
+    
 });
