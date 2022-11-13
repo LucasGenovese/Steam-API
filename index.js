@@ -9,16 +9,11 @@ app.use(cors())
 
 let webTradeEligibility, browserid, steamLoginSecure, sessionid, steamparental;
 
-let idPriceList = [];
 let fullList = [];
 let userGameID = [];
+let priceList = [];
+let idList = [];
 
-class idPrice{
-    constructor(price, gameId){
-        this.price = price;
-        this.gameId = gameId;
-    }
-}
 
 class fullDesc{
     constructor(name, gamePrice, cardAmmount, profit, gameUrl, gameImg, gameID){
@@ -68,9 +63,8 @@ async function filterTradingCard(price, gameId){
     // gets price, trims it and parses it to float
     const $ = cheerio.load(data.results_html);
     let tradingCardPrice = $('.normal_price').text().trim();
-    let tradingCardPriceTrimmed = tradingCardPrice.trim().split(' ')[3];
+    let tradingCardPriceTrimmed = /\d+(,\d+)?/.exec(tradingCardPrice)[0];
     
-    // validates that tradingCardPriceTrimmed is not undefined
     if (tradingCardPriceTrimmed){
         tradingCardPriceTrimmed = parseFloat(tradingCardPriceTrimmed.replace(',','.'));    
     }
@@ -109,15 +103,19 @@ async function getInfo(){
 
     const $ = cheerio.load(data.results_html);
 
-    $('.col.search_capsule').each(function(i,element) { 
+    $('.col.search_price.discounted.responsive_secondrow').each(function(i,element){
+        let str = $([...$(this).contents()]
+            .find(e => e.type === "text" && $(e).text().trim()))
+            .text()
+            .trim();
+        let match = /\d+(,\d+)?/.exec(str);
+        let price = Number(match[0].replace(',', '.'));
+        priceList.push(price);
+    });
+
+    $('.search_result_row.ds_collapse_flag').each(function(i,element) { 
         let gameId = $(this).find('img').attr('src').split("/")[5].trim(); // grabs game ID from img src and then trims the ID
-        
-        let price = $(this).nextUntil('.col.search_price.discounted.responsive_secondrow').text().trim(); // gets game price
-        price = price.split('$')[2];
-        price = parseFloat(price.replace(',','.'));
-        
-        let idPriceNode = new idPrice(price, gameId);
-        idPriceList.push(idPriceNode);
+        idList.push(gameId);
     });
 
 }
@@ -126,17 +124,13 @@ async function main(){
     // generates idPriceList 
     await getInfo();
 
-    // makes two different arrays for each data type so it can pass them to filterTradingCard function
-    let priceList =  idPriceList.map(({price}) => price);
-    let idList = idPriceList.map(({gameId}) => gameId); 
-
-    for (let i=0; i<30; i++){ // change to i<idPriceList.length to show complete list of games
+    for (let i=0; i<30; i++){ // change to i<idList.length to show complete list of games
 
         // every 20 requests waits 5 seconds so it wont block me for attempting too much
         if (i%20 === 0 && i!=0){
             await sleep(1000);
         }
-        
+
         // retrieves and makes list of profitable games
         await filterTradingCard(priceList[i], idList[i]);
     }
