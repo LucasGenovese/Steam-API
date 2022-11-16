@@ -170,6 +170,7 @@ app.get('/game-list', async (req, res) => {
 app.get('/user-game-list', async (req, res) => {
     steamLoginSecure = req.query.steamLoginSecure;
 
+    fullList = [];
     userGameID = [];
 
     try {
