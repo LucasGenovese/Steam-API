@@ -43,7 +43,7 @@ async function getUserList(profileId){
             datSplit[i].indexOf("<appID>") + "<appID>".length,
             datSplit[i].indexOf("</appID>")
         );
-        userGameID.push(filteredID);
+        userGameID.push(parseInt(filteredID));
     }
     userGameID.splice(0,1);
     return userGameID;
@@ -85,10 +85,10 @@ async function filterTradingCard(price, gameId){
         let makeNode = new fullDesc(gameNameTrimmed, 
             price, 
             possibleCards, 
-            calculateProfit.toFixed(2), 
+            parseFloat(calculateProfit.toFixed(2)), 
             'https://store.steampowered.com/app/' + gameId, 
             'https://cdn.cloudflare.steamstatic.com/steam/apps/' + gameId + '/capsule_sm_120.jpg',
-            gameId
+            parseInt(gameId)
         ); // sends the data to an structure
         fullList.push(makeNode);
     }
@@ -175,8 +175,12 @@ app.get('/user-game-list', async (req, res) => {
     try {
         console.log("Retrieving user game list...");
         var gameIDList = await getUserList(steamLoginSecure.split('|')[0]);
+        var finalList = await main();
         console.log("Successfully retrieved user game list!");
-        res.send(gameIDList);
+        finalList = finalList.filter(function(val) {
+            return gameIDList.indexOf(val.gameID) === -1;
+        });
+        res.send(finalList);
     } catch (error){
         console.log("Not found.");
         res.status(404).send("Not found.");
