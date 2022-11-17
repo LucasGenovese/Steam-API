@@ -168,7 +168,11 @@ app.get('/game-list', async (req, res) => {
 
 // Gets game list owned by the user
 app.get('/user-game-list', async (req, res) => {
+    webTradeEligibility = req.query.webTradeEligibility;
+    browserid = req.query.browserid;
     steamLoginSecure = req.query.steamLoginSecure;
+    sessionid = req.query.sessionid;
+    steamparental = req.query.steamparental;
 
     fullList = [];
     userGameID = [];
@@ -181,6 +185,9 @@ app.get('/user-game-list', async (req, res) => {
         finalList = finalList.filter(function(val) {
             return gameIDList.indexOf(val.gameID) === -1;
         });
+        if (finalList.length == 0){
+            throw new Error('Already have all games in library.');
+        }
         res.send(finalList);
     } catch (error){
         console.log("Not found.");
