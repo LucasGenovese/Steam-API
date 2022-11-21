@@ -63,10 +63,11 @@ async function filterTradingCard(price, gameId){
     // gets price, trims it and parses it to float
     const $ = cheerio.load(data.results_html);
     let tradingCardPrice = $('.normal_price').text().trim();
-    let tradingCardPriceTrimmed = /\d+(,\d+)?/.exec(tradingCardPrice)[0];
-    
-    if (tradingCardPriceTrimmed){
-        tradingCardPriceTrimmed = parseFloat(tradingCardPriceTrimmed.replace(',','.'));    
+
+    let tradingCardPriceTrimmed
+    if (tradingCardPrice){ // validates if tradingCardPrice is not undefined
+        tradingCardPriceTrimmed = /\d+(,\d+)?/.exec(tradingCardPrice)[0];    
+        tradingCardPriceTrimmed = parseFloat(tradingCardPriceTrimmed.replace(',','.')); 
     }
 
     // gets ammount of cards and parses it to float
@@ -124,7 +125,7 @@ async function main(){
     // generates idPriceList 
     await getInfo();
 
-    for (let i=0; i<30; i++){ // change to i<idList.length to show complete list of games
+    for (let i=0; i<idList.length; i++){ // change to i<idList.length to show complete list of games
 
         // every 20 requests waits 5 seconds so it wont block me for attempting too much
         if (i%20 === 0 && i!=0){
@@ -160,7 +161,7 @@ app.get('/game-list', async (req, res) => {
         console.log("Successfully retrieved profitable games");
         res.send(finalList);
     } catch (error) {
-        console.log("Not found");
+        console.log(error);
         res.status(404).send("Not found.");
     }
    
@@ -190,7 +191,7 @@ app.get('/user-game-list', async (req, res) => {
         }
         res.send(finalList);
     } catch (error){
-        console.log("Not found.");
+        console.log(error);
         res.status(404).send("Not found.");
     }
     
