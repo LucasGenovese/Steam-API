@@ -152,8 +152,11 @@ app.get('/game-list', async (req, res) => {
     sessionid = req.query.sessionid;
     steamparental = req.query.steamparental;
 
-    // cleans list before sending new one
+    // cleans every list before sending new one
     fullList = [];
+    userGameID = [];
+    priceList = [];
+    idList = [];
 
     try {
         console.log("Retrieving game list...");
@@ -177,6 +180,8 @@ app.get('/user-game-list', async (req, res) => {
 
     fullList = [];
     userGameID = [];
+    priceList = [];
+    idList = [];
 
     try {
         console.log("Retrieving user game list...");
