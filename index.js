@@ -7,13 +7,22 @@ const PORT = 3001;
 const app = express();
 app.use(cors())
 
-let webTradeEligibility, browserid, steamLoginSecure, sessionid, steamparental;
+class usrCookies {
+    constructor(webTradeEligibility, browserid, steamLoginSecure, sessionid, steamparental){
+        this.webTradeEligibility = webTradeEligibility;
+        this.browserid = browserid;
+        this.steamLoginSecure = steamLoginSecure;
+        this.sessionid = sessionid;
+        this.steamparental = steamparental;
+    }
+}
 
-let fullList = [];
-let userGameID = [];
-let priceList = [];
-let idList = [];
-
+class idAndPrice{
+    constructor(gameID, gamePrice){
+        this.gameID = gameID;
+        this.gamePrice = gamePrice;
+    }
+}
 
 class fullDesc{
     constructor(name, gamePrice, cardAmmount, profit, gameUrl, gameImg, gameID){
@@ -33,6 +42,8 @@ function sleep(ms) {
 
 // gets user game list
 async function getUserList(profileId){
+    let userGameID = [];
+
     const res = await fetch('https://steamcommunity.com/profiles/' + profileId + '/games?tab=all&xml=1');
     const dat = await res.text();
     
@@ -49,13 +60,13 @@ async function getUserList(profileId){
     return userGameID;
 }
 
-async function filterTradingCard(price, gameId){
+async function filterTradingCard(price, gameId, cookieObj){
     const fee = 0.87;
 
     const response = await fetch('https://steamcommunity.com/market/search/render/?query=&start=0&count=10&search_descriptions=0&sort_column=price&sort_dir=asc&appid=753&category_753_Game%5B%5D=tag_app_'+gameId+'&category_753_cardborder%5B%5D=tag_cardborder_0&category_753_item_class%5B%5D=tag_item_class_2', {
         mode: 'cors',
         'headers': {
-            'Cookie': 'sessionid='+ sessionid +'; steamLoginSecure='+ steamLoginSecure +'; browserid= '+ browserid +'; steamparental='+ steamparental +'; webTradeEligibility= '+ webTradeEligibility +'; browserid=' + browserid
+            'Cookie': 'sessionid='+ cookieObj.sessionid +'; steamLoginSecure='+ cookieObj.steamLoginSecure +'; browserid= '+ cookieObj.browserid +'; steamparental='+ cookieObj.steamparental +'; webTradeEligibility= '+ cookieObj.webTradeEligibility +'; browserid=' + cookieObj.browserid
         }
     });
     const data = await response.json();
@@ -90,13 +101,17 @@ async function filterTradingCard(price, gameId){
             'https://store.steampowered.com/app/' + gameId, 
             'https://cdn.cloudflare.steamstatic.com/steam/apps/' + gameId + '/capsule_sm_120.jpg',
             parseInt(gameId)
-        ); // sends the data to an structure
-        fullList.push(makeNode);
+        );
+
+        return makeNode;
     }
 }
 
 
 async function getInfo(){
+    let priceList = [];
+    let idList = [];
+    let priceListAndIdList = [];
 
     const response = await fetch ('https://store.steampowered.com/search/results/?query&start=0&count=100&dynamic_data=&sort_by=Price_ASC&snr=1_7_7_230_7&maxprice=840&category1=998&category2=29&infinite=1',
     {mode: 'cors'});
@@ -119,21 +134,36 @@ async function getInfo(){
         idList.push(gameId);
     });
 
+    for (var i=0; i<priceList.length; i++){
+        let newNode = new idAndPrice(idList[i],priceList[i]);
+        priceListAndIdList.push(newNode);
+    }
+
+    return priceListAndIdList;
 }
 
-async function main(){
+async function main(cookieObj){
     // generates idPriceList 
-    await getInfo();
+    var priceListAndIdList = await getInfo();
 
-    for (let i=0; i<idList.length; i++){ // change to i<idList.length to show complete list of games
+    let fullList = [];
+    let priceList = [];
+    let idList = [];
+    // unwraps single list into two
+    priceListAndIdList.forEach(arrItem => {
+        priceList.push(arrItem.gamePrice);
+        idList.push(arrItem.gameID);
+    })
+
+    for (let i=0; i<30; i++){ // change to i<idList.length to show complete list of games
 
         // every 20 requests waits 5 seconds so it wont block me for attempting too much
         if (i%20 === 0 && i!=0){
             await sleep(1000);
         }
-
         // retrieves and makes list of profitable games
-        await filterTradingCard(priceList[i], idList[i]);
+        let latestNode = await filterTradingCard(priceList[i], idList[i], cookieObj);
+        fullList.push(latestNode);
     }
 
     return fullList;
@@ -146,21 +176,17 @@ app.listen(
 
 // Gets profitable game list
 app.get('/game-list', async (req, res) => {
-    webTradeEligibility = req.query.webTradeEligibility;
-    browserid = req.query.browserid;
-    steamLoginSecure = req.query.steamLoginSecure;
-    sessionid = req.query.sessionid;
-    steamparental = req.query.steamparental;
+    let webTradeEligibility = req.query.webTradeEligibility;
+    let browserid = req.query.browserid;
+    let steamLoginSecure = req.query.steamLoginSecure;
+    let sessionid = req.query.sessionid;
+    let steamparental = req.query.steamparental;
 
-    // cleans every list before sending new one
-    fullList = [];
-    userGameID = [];
-    priceList = [];
-    idList = [];
+    let cookieObj = new usrCookies (webTradeEligibility,browserid,steamLoginSecure,sessionid,steamparental);
 
     try {
         console.log("Retrieving game list...");
-        var finalList = await main();
+        var finalList = await main(cookieObj);
         console.log("Successfully retrieved profitable games");
         res.send(finalList);
     } catch (error) {
@@ -172,21 +198,18 @@ app.get('/game-list', async (req, res) => {
 
 // Gets game list owned by the user
 app.get('/user-game-list', async (req, res) => {
-    webTradeEligibility = req.query.webTradeEligibility;
-    browserid = req.query.browserid;
-    steamLoginSecure = req.query.steamLoginSecure;
-    sessionid = req.query.sessionid;
-    steamparental = req.query.steamparental;
+    let webTradeEligibility = req.query.webTradeEligibility;
+    let browserid = req.query.browserid;
+    let steamLoginSecure = req.query.steamLoginSecure;
+    let sessionid = req.query.sessionid;
+    let steamparental = req.query.steamparental;
 
-    fullList = [];
-    userGameID = [];
-    priceList = [];
-    idList = [];
+    let cookieObj = new usrCookies (webTradeEligibility,browserid,steamLoginSecure,sessionid,steamparental);
 
     try {
         console.log("Retrieving user game list...");
         var gameIDList = await getUserList(steamLoginSecure.split('|')[0]);
-        var finalList = await main();
+        var finalList = await main(cookieObj);
         console.log("Successfully retrieved user game list!");
         finalList = finalList.filter(function(val) {
             return gameIDList.indexOf(val.gameID) === -1;
