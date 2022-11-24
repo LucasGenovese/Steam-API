@@ -155,7 +155,7 @@ async function main(cookieObj){
         idList.push(arrItem.gameID);
     })
 
-    for (let i=0; i<30; i++){ // change to i<idList.length to show complete list of games
+    for (let i=0; i<idList.length; i++){ // change to i<idList.length to show complete list of games
 
         // every 20 requests waits 5 seconds so it wont block me for attempting too much
         if (i%20 === 0 && i!=0){
@@ -163,7 +163,9 @@ async function main(cookieObj){
         }
         // retrieves and makes list of profitable games
         let latestNode = await filterTradingCard(priceList[i], idList[i], cookieObj);
-        fullList.push(latestNode);
+        if (latestNode){ // only pushes defined nodes
+            fullList.push(latestNode);
+        }
     }
 
     return fullList;
