@@ -15,6 +15,9 @@ Cd into "Steam-API" folder and install packages with:
 
 ## Usage guide:  
 
+> **Note**
+> By default it will fetch Steam store prices from the country you are in. Which may be different from where your account is located. If you want to change it to your accounts location you should modify the script in the line 116 and add at the end of the url `&cc=AR` where AR should be replaced by your country code.
+
 Run the code using and keep it in the background:  
 `$ node index.js`  
 
