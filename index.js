@@ -69,7 +69,6 @@ async function filterTradingCard(price, gameId, cookieObj){
         }
     });
     const data = await response.json();
-    console.log(response);
     // gets price, trims it and parses it to float
     const $ = cheerio.load(data.results_html);
     let tradingCardPrice = $('.normal_price').text().trim();
