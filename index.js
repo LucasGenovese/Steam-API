@@ -62,7 +62,6 @@ async function getUserList(profileId){
 
 async function filterTradingCard(price, gameId, cookieObj){
     const fee = 0.87;
-
     const response = await fetch('https://steamcommunity.com/market/search/render/?query=&start=0&count=10&search_descriptions=0&sort_column=price&sort_dir=asc&appid=753&category_753_Game%5B%5D=tag_app_'+gameId+'&category_753_cardborder%5B%5D=tag_cardborder_0&category_753_item_class%5B%5D=tag_item_class_2', {
         mode: 'cors',
         'headers': {
@@ -70,7 +69,7 @@ async function filterTradingCard(price, gameId, cookieObj){
         }
     });
     const data = await response.json();
-
+    console.log(response);
     // gets price, trims it and parses it to float
     const $ = cheerio.load(data.results_html);
     let tradingCardPrice = $('.normal_price').text().trim();
@@ -112,12 +111,35 @@ async function getInfo(){
     let priceList = [];
     let idList = [];
     let priceListAndIdList = [];
+    let urlContent;
 
-    const response = await fetch ('https://store.steampowered.com/search/results/?query&start=0&count=100&dynamic_data=&sort_by=Price_ASC&snr=1_7_7_230_7&maxprice=840&category1=998&category2=29&infinite=1',
-    {mode: 'cors'});
-    const data = await response.json();
+    const urlList = ['https://store.steampowered.com/search/results/?query&start=0&count=100&dynamic_data=&sort_by=Price_ASC&snr=1_7_7_230_7&maxprice=840&category1=998&category2=29&infinite=1',
+                     'https://store.steampowered.com/search/results/?query&start=100&count=200&dynamic_data=&sort_by=Price_ASC&snr=1_7_7_230_7&maxprice=840&category1=998&category2=29&infinite=1',
+                     'https://store.steampowered.com/search/results/?query&start=200&count=300&dynamic_data=&sort_by=Price_ASC&snr=1_7_7_230_7&maxprice=840&category1=998&category2=29&infinite=1',
+                     'https://store.steampowered.com/search/results/?query&start=300&count=400&dynamic_data=&sort_by=Price_ASC&snr=1_7_7_230_7&maxprice=840&category1=998&category2=29&infinite=1',
+    ]
+    /* current list filters 400 games. If you want to filter more replace with the array below:
+    const urlList = ['https://store.steampowered.com/search/results/?query&start=0&count=100&dynamic_data=&sort_by=Price_ASC&snr=1_7_7_230_7&maxprice=840&category1=998&category2=29&infinite=1',
+                     'https://store.steampowered.com/search/results/?query&start=100&count=200&dynamic_data=&sort_by=Price_ASC&snr=1_7_7_230_7&maxprice=840&category1=998&category2=29&infinite=1',
+                     'https://store.steampowered.com/search/results/?query&start=200&count=300&dynamic_data=&sort_by=Price_ASC&snr=1_7_7_230_7&maxprice=840&category1=998&category2=29&infinite=1',
+                     'https://store.steampowered.com/search/results/?query&start=300&count=400&dynamic_data=&sort_by=Price_ASC&snr=1_7_7_230_7&maxprice=840&category1=998&category2=29&infinite=1',
+                     'https://store.steampowered.com/search/results/?query&start=400&count=500&dynamic_data=&sort_by=Price_ASC&snr=1_7_7_230_7&maxprice=840&category1=998&category2=29&infinite=1',
+                     'https://store.steampowered.com/search/results/?query&start=500&count=600&dynamic_data=&sort_by=Price_ASC&snr=1_7_7_230_7&maxprice=840&category1=998&category2=29&infinite=1',
+                     'https://store.steampowered.com/search/results/?query&start=600&count=700&dynamic_data=&sort_by=Price_ASC&snr=1_7_7_230_7&maxprice=840&category1=998&category2=29&infinite=1',
+                     'https://store.steampowered.com/search/results/?query&start=700&count=800&dynamic_data=&sort_by=Price_ASC&snr=1_7_7_230_7&maxprice=840&category1=998&category2=29&infinite=1',
+                     'https://store.steampowered.com/search/results/?query&start=800&count=900&dynamic_data=&sort_by=Price_ASC&snr=1_7_7_230_7&maxprice=840&category1=998&category2=29&infinite=1',
+                     'https://store.steampowered.com/search/results/?query&start=900&count=1000&dynamic_data=&sort_by=Price_ASC&snr=1_7_7_230_7&maxprice=840&category1=998&category2=29&infinite=1'
+    ]
+    */
+    
+    for (var i=0; i<urlList.length; i++){
+        var response = await fetch(urlList[i], {mode:'cors'});
+        var data = await response.json();
+        urlContent += data.results_html;
+        await sleep(1000);
+    }
 
-    const $ = cheerio.load(data.results_html);
+    const $ = cheerio.load(urlContent);
 
     $('.col.search_price.discounted.responsive_secondrow').each(function(i,element){
         let str = $([...$(this).contents()]
@@ -159,7 +181,7 @@ async function main(cookieObj){
 
         // every 20 requests waits 5 seconds so it wont block me for attempting too much
         if (i%20 === 0 && i!=0){
-            await sleep(1000);
+            await sleep(5000);
         }
         // retrieves and makes list of profitable games
         let latestNode = await filterTradingCard(priceList[i], idList[i], cookieObj);
