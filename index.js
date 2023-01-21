@@ -204,7 +204,7 @@ app.get('/game-list', async (req, res) => {
         console.log("Retrieving game list...");
         var finalList = await main(cookieObj);
         console.log("Successfully retrieved profitable games");
-        res.send(finalList);
+        res.send(finalList.sort((a, b) => b.profit - a.profit));
     } catch (error) {
         console.log(error);
         res.status(404).send("Not found.");
