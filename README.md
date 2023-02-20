@@ -27,7 +27,7 @@ Then add the following keys:
 ![scrennshot](https://user-images.githubusercontent.com/72575906/204197869-76f34905-51cf-4d67-826a-924da14941c8.jpg)
 If you do not have steam parental enabled then leave the steamparental cookie empty
 
-To get the value for each key go to your [Steam Marketplace](https://steamcommunity.com/market/). Press f12 and go to Application -> Cookies and copy every matching name to its matching value in postman.  
+To get the value for each key go to your [Steam Marketplace](https://steamcommunity.com/market/). Press f12 and go to Application -> Cookies and copy every matching name to its matching value in postman. Also don't forget to have the Steam account logged in the desktop app for it to work.
 Finally click "Send" in post man and wait. It takes arround 30 to 60 seconds depending on how many games you want it to show.
 
 ## Why does it use personal cookies?  
