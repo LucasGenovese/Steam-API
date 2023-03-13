@@ -2,6 +2,10 @@ import fetch from "node-fetch";
 import * as cheerio from "cheerio";
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
+
+dotenv.config();
+const apiKey = process.env.API_KEY;
 
 const PORT = 3001;
 const app = express();
@@ -42,22 +46,11 @@ function sleep(ms) {
 
 // gets user game list
 async function getUserList(profileId){
-    let userGameID = [];
+    const res = await fetch('https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=' + apiKey + '&steamid=' + profileId);
+    const dat = await res.json();
 
-    const res = await fetch('https://steamcommunity.com/profiles/' + profileId + '/games?tab=all&xml=1');
-    const dat = await res.text();
-    
-    let datSplit = dat.split('<game>');
-    
-    for (let i=0; i<datSplit.length; i++){
-        var filteredID = datSplit[i].substring(
-            datSplit[i].indexOf("<appID>") + "<appID>".length,
-            datSplit[i].indexOf("</appID>")
-        );
-        userGameID.push(parseInt(filteredID));
-    }
-    userGameID.splice(0,1);
-    return userGameID;
+    const appIds = dat.response.games.map(game => game.appid);
+    return appIds;
 }
 
 async function filterTradingCard(price, gameId, cookieObj){
