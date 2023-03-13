@@ -12,6 +12,12 @@ Clone with:
 Cd into "Steam-API" folder and install packages with:  
 `$ npm install`  
 
+Add a .env file:  
+`$ touch .env`
+
+Finally, using any text editor, add the following line to the .env file:  
+`API_KEY = *you steam api key*`
+
 
 ## Usage guide:  
 
